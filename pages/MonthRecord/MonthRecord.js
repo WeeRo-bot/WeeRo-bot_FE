@@ -95,7 +95,7 @@ const MonthRecord = () => {
         {/* 케어 솔루션 */}
         <View style={styles.solutionContainer}>
           <Image
-            source={require('./assets/images/weerobot.png')}
+            source={require('../../assets/images/weerobot.png')}
             style={styles.characterImage}
           />
           <View style={styles.bubbleWrapper}>

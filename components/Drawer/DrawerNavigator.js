@@ -2,7 +2,8 @@ import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { View, Text, Image } from 'react-native';
 
-import MyPageScreen from '../../pages/DateDetail/DateDetail';
+// import MyPageScreen from '../../pages/DateDetail/DateDetail';
+import MyPageScreen from '../../pages/MonthRecord/MonthRecord';
 import RobotScreen from '../../pages/WeeRoUsage/index';
 import CustomDrawerContent from './CustomDrawerContent';
 
