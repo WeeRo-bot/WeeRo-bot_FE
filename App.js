@@ -1,20 +1,36 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import DateDetail from './pages/DateDetail/DateDetail';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import LoginScreen from './pages/UserAccount/Login';
+import DrawerNavigator from './components/Drawer/DrawerNavigator';
+import SignUpDrawerNavigator from './components/Drawer/SignUpDrawerNavigator';
 
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-      <DateDetail />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Signup" component={SignUpDrawerNavigator} />
+        <Stack.Screen name="MainDrawer" component={DrawerNavigator} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-});
+// <Drawer 메뉴 테스트 코드>
+// import React from 'react';
+// import { SafeAreaProvider } from 'react-native-safe-area-context';
+// import { NavigationContainer } from '@react-navigation/native';
+// import DrawerNavigator from './components/Drawer/DrawerNavigator';
+
+// export default function App() {
+//   return (
+//     <SafeAreaProvider>
+//       <NavigationContainer>
+//         <DrawerNavigator />
+//       </NavigationContainer>
+//     </SafeAreaProvider>
+//   );
+// }

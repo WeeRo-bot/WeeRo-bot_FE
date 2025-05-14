@@ -82,11 +82,21 @@ export default function DateDetail() {
   );
 }
 
+// const styles = StyleSheet.create({
+//     container: {
+//       flex: 1,
+//       backgroundColor: '#fff',
+//       marginTop: 90
+//     },
+//   });
+
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#fff',
-      marginTop: 90
-    },
-  });
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    // marginTop: 90 제거!
+    // SafeAreaProvider가 상단 여백 처리함
+    // paddingHorizontal: 16, // 선택사항: 좌우 패딩
+  },
+});
   
