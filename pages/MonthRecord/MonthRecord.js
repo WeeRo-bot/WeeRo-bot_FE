@@ -4,30 +4,20 @@ import { Calendar } from 'react-native-calendars';
 import { BarChart } from 'react-native-chart-kit';
 import { useNavigation } from '@react-navigation/native';
 import { Image } from 'react-native';
+import { emotionColors } from "../../data/colors"; 
 
 const screenWidth = Dimensions.get('window').width;
 
-// 감정 → 색상 매핑 (임시 색상상)
-const emotionColors = {
-  행복: '#FFB95A',
-  분노: '#EF4444',
-  혐오: '#264653',
-  공포: '#864FD3',
-  중립: '#A9A9A9',
-  슬픔: '#3B82F6',
-  놀람: '#52C24C',
-};
-
 // 예시: 날짜별 대표 감정 (실제론 백엔드에서 받아오겠지만 지금은 하드코딩)
 const emotionByDate = {
-  '2025-05-01': '행복',
-  '2025-05-02': '놀람',
-  '2025-05-03': '슬픔',
-  '2025-05-04': '공포',
-  '2025-05-05': '분노',
-  '2025-05-06': '혐오',
-  '2025-05-07': '분노',
-  '2025-05-12': '중립',
+  '2025-05-01': 'happiness',
+  '2025-05-02': 'surprise',
+  '2025-05-03': 'sadness',
+  '2025-05-04': 'fear',
+  '2025-05-05': 'angry',
+  '2025-05-06': 'disgust',
+  '2025-05-07': 'angry',
+  '2025-05-12': 'neutral',
 };
 
 const MonthRecord = () => {
@@ -183,8 +173,8 @@ const styles = StyleSheet.create({
   },
   bubbleTail: {
     position: 'absolute',
-    top: -8,
-    left: 20,
+    top: 10,
+    left: -8,
     width: 0,
     height: 0,
     borderTopWidth: 10,
@@ -195,7 +185,7 @@ const styles = StyleSheet.create({
     borderRightColor: '#D7EDFC',
     borderBottomColor: 'transparent',
     borderLeftColor: 'transparent',
-    transform: [{ rotate: '45deg' }],
+    transform: [{ rotate: '0deg' }],
   },
   solutionTitle: {
     fontSize: 18,
