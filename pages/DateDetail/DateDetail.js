@@ -3,7 +3,8 @@ import DateDetailTitle from './DateDetailTitle';
 import DateDetailGraph from './DateDetailGraph';
 import DateDetailEmotion from './DateDetailEmotion';
 
-export default function DateDetail() {
+export default function DateDetail({ route }) {
+  const { date } = route.params;
 
   const data = [{
     id: 1,
@@ -59,8 +60,15 @@ export default function DateDetail() {
     ]
   }]
 
+  // 날짜 형식 변경
+  function formatDateToKorean(dateString) {
+    const [year, month, day] = dateString.split('-');
+    return `${parseInt(month)}월 ${parseInt(day)}일`;
+  }
+
+  // 데이터 존재 확인
   const currentDateData = data && data.length > 0 ? data[0] : null;
-  
+
   if (!currentDateData) {
     return (
       <View style={styles.container}>
@@ -71,7 +79,7 @@ export default function DateDetail() {
 
   return (
     <View style={styles.container}>
-      <DateDetailTitle date={currentDateData.date} />
+      <DateDetailTitle date={formatDateToKorean(date)} />
       <DateDetailGraph timeEmotionData={currentDateData.timeEmotion} />
       <DateDetailEmotion 
         mainEmotion={currentDateData.mainEmotion} 

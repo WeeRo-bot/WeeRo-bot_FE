@@ -2,7 +2,7 @@ import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { View, Text, Image } from 'react-native';
 
-// import MyPageScreen from '../../pages/DateDetail/DateDetail';
+import DateDeatilScreen from '../../pages/DateDetail/DateDetail';
 import MyPageScreen from '../../pages/MonthRecord/MonthRecord';
 import RobotScreen from '../../pages/WeeRoUsage/index';
 import CustomDrawerContent from './CustomDrawerContent';
@@ -35,6 +35,7 @@ export default function DrawerNavigator() {
 >
       <Drawer.Screen name="My Page" component={MyPageScreen} />
       <Drawer.Screen name="Robot" component={RobotScreen} />
+      <Drawer.Screen name="EmotionDetail" component={DateDeatilScreen} />
     </Drawer.Navigator>
   );
 }
