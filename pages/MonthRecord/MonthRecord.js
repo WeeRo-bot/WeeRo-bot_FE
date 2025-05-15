@@ -183,8 +183,8 @@ const styles = StyleSheet.create({
   },
   bubbleTail: {
     position: 'absolute',
-    top: -8,
-    left: 20,
+    top: 10,
+    left: -8,
     width: 0,
     height: 0,
     borderTopWidth: 10,
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     borderRightColor: '#D7EDFC',
     borderBottomColor: 'transparent',
     borderLeftColor: 'transparent',
-    transform: [{ rotate: '45deg' }],
+    transform: [{ rotate: '0deg' }],
   },
   solutionTitle: {
     fontSize: 18,
