@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: 80,
     marginTop: 40,
+    marginBottom: 40,
     alignSelf: 'center',
     position: 'relative',
   },
