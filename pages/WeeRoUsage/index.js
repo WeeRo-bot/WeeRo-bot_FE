@@ -5,7 +5,8 @@ import { emotionTextMap } from '../../data/emotionData';
 
 export default function WeeRoUsage() {
   const [input, setInput] = useState('');
-  const [emotion, setEmotion] = useState('행복'); 
+  const [emotion, setEmotion] = useState('행복');  
+  const [loading, setLoading] = useState(false);
 
   const emotionData = emotionTextMap[emotion] || {
     emoji: '',
@@ -15,6 +16,36 @@ export default function WeeRoUsage() {
     //마이크 버튼을 누를 때의 처리 (음성 인식 기능 추가 예정)
   const handleMicPress = () => {
     alert('마이크 버튼을 눌렀습니다!');
+  };
+
+  const handleAnalyze = async () => {
+    if (!input.trim()) {
+      Alert.alert('입력 오류', '분석할 텍스트를 입력해주세요.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch('http://127.0.0.1:8001/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: input }),
+      });
+
+      if (!response.ok) {
+        throw new Error('서버 응답 오류');
+      }
+
+      const data = await response.json();
+      setEmotion(data.emotion); // 예: '행복', '분노', 등
+    } catch (error) {
+      console.error(error);
+      Alert.alert('에러', '감정 분석 중 오류가 발생했어요.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,6 +69,11 @@ export default function WeeRoUsage() {
         value={input}
         onChangeText={setInput}
       />
+      <TouchableOpacity style={styles.analyzeButton} onPress={handleAnalyze}>
+          <Text style={styles.analyzeButtonText}>
+            {loading ? '분석 중...' : '감정 분석하기'}
+          </Text>
+      </TouchableOpacity>
       <View style={{ alignSelf: 'flex-start', marginLeft: 24 }}>
         <Text style={styles.analysisTitle}>👀 감정 분석 결과</Text>
       </View>
@@ -87,6 +123,18 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 50,
   },
+  analyzeButton: {
+    backgroundColor: '#6C63FF',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  analyzeButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   analysisTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -126,4 +174,31 @@ const styles = StyleSheet.create({
   suggestionText: {
     fontSize: 14,
   },
+  analyzeButton: {
+  backgroundColor: '#A1F0DD',
+  paddingVertical: 12,
+  paddingHorizontal: 24,
+  borderRadius: 10,
+  marginBottom: 30,
+  elevation: 5,
+},
+analyzeButtonText: {
+  color: '#000',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
+analyzeButton: {
+  backgroundColor: '#A1F0DD',
+  paddingVertical: 12,
+  paddingHorizontal: 24,
+  borderRadius: 10,
+  marginBottom: 30,
+  elevation: 5,
+},
+analyzeButtonText: {
+  color: '#000',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
+
 });
