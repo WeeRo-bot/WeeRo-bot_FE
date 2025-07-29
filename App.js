@@ -19,26 +19,18 @@
 //   );
 // }
 
-// <위로봇 페이지(STT 기능) 테스트 코드>
+// <Drawer 메뉴 테스트 코드>
 import React from 'react';
-import WeeRoUsage from './pages/WeeRoUsage';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
+import DrawerNavigator from './components/Drawer/DrawerNavigator';
 
 export default function App() {
-  return <WeeRoUsage />;
+  return (
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <DrawerNavigator />
+      </NavigationContainer>
+    </SafeAreaProvider>
+  );
 }
-
-// // <Drawer 메뉴 테스트 코드>
-// import React from 'react';
-// import { SafeAreaProvider } from 'react-native-safe-area-context';
-// import { NavigationContainer } from '@react-navigation/native';
-// import DrawerNavigator from './components/Drawer/DrawerNavigator';
-
-// export default function App() {
-//   return (
-//     <SafeAreaProvider>
-//       <NavigationContainer>
-//         <DrawerNavigator />
-//       </NavigationContainer>
-//     </SafeAreaProvider>
-//   );
-// }
