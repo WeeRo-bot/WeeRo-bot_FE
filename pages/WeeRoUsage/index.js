@@ -1,52 +1,130 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, TextInput, StyleSheet, Image, TouchableOpacity,KeyboardAvoidingView, Platform, } from 'react-native';
+import { ScrollView, View, Text, TextInput, StyleSheet, Image, TouchableOpacity,KeyboardAvoidingView, Platform,Alert, } from 'react-native';
 import EmotionLight from './EmotionLight';
 import { emotionTextMap } from '../../data/emotionData';
+import axios from 'axios';
+
+// API 기본 URL 설정 (본인 환경에 맞게 수정 필요)
+const API_BASE_URL = 'http://192.168.0.8:8080';
 
 export default function WeeRoUsage() {
+  const [inputText, setInputText] = useState('');
   const [input, setInput] = useState('');
-  const [emotion, setEmotion] = useState('행복');  
+  const [emotion, setEmotion] = useState('');
+  const [advice, setAdvice] = useState('');
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
 
-  const emotionData = emotionTextMap[emotion] || {
-    emoji: '',
-    message: '감정을 인식하지 못했어요.\n다시 시도해 주세요.',
+  // 서버 감정 값을 한글 매핑
+  const normalizeEmotion = (srvEmotion) => {
+  switch (srvEmotion.toLowerCase()) {
+    case 'happy':
+      return '행복';
+    case 'sad':
+      return '슬픔';
+    case 'angry':
+      return '분노';
+    case 'surprise':
+      return '놀람';
+    case 'fear':
+      return '공포';
+    case 'disgust':
+      return '혐오';
+    case 'neutral':
+      return '중립';
+    default:
+      return srvEmotion;
+    }
   };
 
-    //마이크 버튼을 누를 때의 처리 (음성 인식 기능 추가 예정)
+// 감정 객체에서 가장 높은 확률의 감정을 찾는 함수
+const findDominantEmotion = (emotionObj) => {
+    if (!emotionObj) return '';
+  
+    let maxEmotion = '';
+    let maxValue = 0;
+  
+    Object.entries(emotionObj).forEach(([emotion, value]) => {
+      if (value > maxValue) {
+        maxValue = value;
+        maxEmotion = emotion;
+      }
+    });
+  
+    return normalizeEmotion(maxEmotion);
+  };
+
+  // 카메라 버튼 눌렀을 때 (Spring Boot → RPi 호출 → 결과 반환)
+  const handleCamPress = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.post(`${API_BASE_URL}/api/emotions/analyze`);
+      const result = data.data; 
+
+      setEmotion(normalizeEmotion(result.emotion));
+      setAdvice(result.advice);
+    } catch (e) {
+      console.error(e);
+      Alert.alert('오류', '감정 분석 요청에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    };
+  };
+
+  //마이크 버튼을 누를 때의 처리 (음성 인식 기능 추가 예정)
   const handleMicPress = () => {
     alert('마이크 버튼을 눌렀습니다!');
   };
 
+  // 텍스트 입력 후 분석 버튼 눌렀을 때
   const handleAnalyze = async () => {
-    if (!input.trim()) {
-      Alert.alert('입력 오류', '분석할 텍스트를 입력해주세요.');
-      return;
-    }
+    if (!inputText.trim()) return;
 
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await fetch('http://127.0.0.1:8001/predict', {
+      const response = await fetch(`${API_BASE_URL}/emotion/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: input }),
+        body: JSON.stringify({ text: inputText }),
       });
 
-      if (!response.ok) {
-        throw new Error('서버 응답 오류');
-      }
-
-      const data = await response.json();
-      setEmotion(data.emotion); // 예: '행복', '분노', 등
+      const json = await response.json();
+      const dominantEmotion = findDominantEmotion(json.mappedEmotion);
+      setEmotion(dominantEmotion); // response는 { emotion: { ... } } 형식임
+      getChatAdvice(dominantEmotion);
     } catch (error) {
-      console.error(error);
-      Alert.alert('에러', '감정 분석 중 오류가 발생했어요.');
+      console.error('분석 실패:', error);
     } finally {
       setLoading(false);
     }
   };
+  // 표시용 데이터 계산
+  const emoji = emotionTextMap[emotion]?.emoji || '';
+  const defaultMsg = emotionTextMap[emotion]?.message || '감정을 인식하지 못했어요.\n다시 시도해 주세요.';
+  const displayMessage = advice || defaultMsg; // 서버 조언 우선
+
+  const getChatAdvice = async (emotion) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/chat/advice`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ emotion }),
+    });
+
+    if (!response.ok) throw new Error("GPT 응답 실패");
+
+    const text = await response.text();
+    console.log("GPT 조언:", text);
+    setAdvice(text); // ✅ advice 상태에 저장
+  } catch (e) {
+    console.error("GPT 요청 실패:", e);
+    setAdvice(""); // 실패 시 기본 메시지로 fallback
+  }
+};
 
   return (
     <KeyboardAvoidingView
@@ -56,40 +134,62 @@ export default function WeeRoUsage() {
     >
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.headerSpace} />
-      <EmotionLight emotion={emotion} />
-      <TouchableOpacity style={styles.micButton} onPress={handleMicPress}>
-        <Image source={require('../../assets/images/micLeft.png')}/>
-        <Image source={require('../../assets/images/micicon.png')} style={styles.micIcon} />
-        <Image source={require('../../assets/images/micRight.png')}/>
+
+      <Text style={styles.title}>🔮 감정 분석 🔮</Text>
+
+      <View style={styles.sectionContainer}>
+        <Text style={styles.subTitle}>📸 얼굴 인식</Text>
+      </View>
+
+      <TouchableOpacity style={styles.camButton} onPress={handleCamPress}>
+        <Image source={require('../../assets/images/camLeft.png')} />
+        <Image source={require('../../assets/images/camicon.png')} style={styles.micIcon} />
+        <Image source={require('../../assets/images/micRight.png')} />
       </TouchableOpacity>
+
+      <View style={styles.sectionContainer}>
+        <Text style={styles.subTitle}>🎙️ 음성 분석</Text>
+      </View>
+
+      <TouchableOpacity style={styles.micButton} onPress={handleMicPress}>
+        <Image source={require('../../assets/images/micLeft.png')} />
+        <Image source={require('../../assets/images/micicon.png')} style={styles.micIcon} />
+        <Image source={require('../../assets/images/micRight.png')} />
+      </TouchableOpacity>
+
+      <View style={styles.sectionContainer}>
+        <Text style={styles.subTitle}>✍️ 텍스트 분석</Text>
+      </View>
+
       <TextInput
         style={styles.input}
         placeholder="텍스트로 입력하기"
         placeholderTextColor="#999"
-        value={input}
-        onChangeText={setInput}
-      />
+        value={inputText}
+        onChangeText={setInputText}/>
+
       <TouchableOpacity style={styles.analyzeButton} onPress={handleAnalyze}>
           <Text style={styles.analyzeButtonText}>
             {loading ? '분석 중...' : '감정 분석하기'}
           </Text>
       </TouchableOpacity>
-      <View style={{ alignSelf: 'flex-start', marginLeft: 24 }}>
-        <Text style={styles.analysisTitle}>👀 감정 분석 결과</Text>
-      </View>
+
+      <Text style={styles.title}>🍀 감정 분석 결과 🍀</Text>
+
+      <EmotionLight emotion={emotion} />
+
       <View style={styles.emotionBadge}>
-        <Text style={styles.emotionText}>
-          {emotionData.emoji} {emotion} {emotionData.emoji}
-        </Text>
+        <Text style={styles.emotionText}>{emoji} {emotion} {emoji}</Text>
       </View>
+
       <View style={styles.botIconContainer}>
         <Image source={require('../../assets/images/bot_icon.png')} style={styles.botIcon} />
       </View>
+
       <View style={styles.suggestionBox}>
-        <Text style={styles.suggestionText}>
-          {emotionData.message}
-        </Text>
+        <Text style={styles.suggestionText}>{displayMessage}</Text>
       </View>
+
     </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -104,10 +204,16 @@ const styles = StyleSheet.create({
   headerSpace: {
     height: 30,
   },
+  camButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+  },
   micButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: 20,
     marginBottom: 20,
   },
   micIcon: {
@@ -135,10 +241,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  analysisTitle: {
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginVertical: 20,
+    textAlign: 'center', 
+    alignSelf: 'center'
+  },
+  sectionContainer: {
+    alignSelf: 'flex-start',
+    marginLeft: 24,
+  },
+  subTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   emotionBadge: {
     backgroundColor: '#E2F6CA',
@@ -150,6 +267,7 @@ const styles = StyleSheet.create({
   },
   emotionText: {
     fontSize: 20,
+    fontWeight: 'bold'
   },
   suggestionBox: {
     backgroundColor: '#D4EEFF',
@@ -173,6 +291,7 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: 14,
+    fontWeight: 'bold'
   },
   analyzeButton: {
   backgroundColor: '#A1F0DD',
