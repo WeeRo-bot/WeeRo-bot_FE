@@ -130,7 +130,7 @@ const findDominantEmotion = (emotionObj) => {
       const transcript = data.results?.[0]?.alternatives?.[0]?.transcript;
 
       if (transcript) {
-        setInput(transcript); // 텍스트로 표시
+        setInputText(transcript); // 텍스트로 표시
       } else {
         alert('음성을 인식하지 못했어요.');
       }
