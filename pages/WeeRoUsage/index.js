@@ -126,7 +126,8 @@ const findDominantEmotion = (emotionObj) => {
         }
       );
 
-      const data = await response.json();
+const result = response.data;
+
       const transcript = data.results?.[0]?.alternatives?.[0]?.transcript;
 
       if (transcript) {
@@ -170,7 +171,8 @@ const findDominantEmotion = (emotionObj) => {
         body: JSON.stringify({ text: inputText }),
       });
 
-      const json = await response.json();
+const json = response.data;
+
       const dominantEmotion = findDominantEmotion(json.mappedEmotion);
       setEmotion(dominantEmotion); // response는 { emotion: { ... } } 형식임
       getChatAdvice(dominantEmotion);

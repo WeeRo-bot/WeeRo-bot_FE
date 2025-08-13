@@ -1,10 +1,33 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { Feather } from '@expo/vector-icons';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CustomDrawerContent(props) {
+
+  // 로그아웃 핸들러
+  const handleLogout = async () => {
+    Alert.alert(
+      '로그아웃',
+      '정말 로그아웃 하시겠습니까?',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '로그아웃',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem('authToken'); // 저장된 토큰 삭제
+            props.navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }], // 스택을 초기화하고 로그인 화면으로 이동
+            });
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0 }}>
@@ -32,10 +55,13 @@ export default function CustomDrawerContent(props) {
 
       {/* 하단 */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.menuItem}>
+        {/* 로그아웃 버튼 */}
+        <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
           <Feather name="log-out" size={20} color="#ccc" />
           <Text style={styles.footerText}>로그아웃</Text>
         </TouchableOpacity>
+
+        {/* 탈퇴하기 버튼 */}
         <TouchableOpacity style={styles.menuItem}>
           <Feather name="user-x" size={20} color="#ccc" />
           <Text style={styles.footerText}>탈퇴하기</Text>
