@@ -64,45 +64,49 @@ try {
 }
   };
 
-  const handleSignup = async () => {
-    if (!id || !password || !nickname) {
-      Alert.alert('필수 입력', 'ID, 비밀번호, 닉네임을 입력해주세요.');
-      return;
-    }
-    if (password !== passwordCheck) {
-      Alert.alert('비밀번호 불일치', '비밀번호가 일치하지 않습니다.');
-      return;
-    }
-    if (!agree1 || !agree2) {
-      Alert.alert('필수 동의', '모든 필수 항목에 동의해주세요.');
-      return;
-    }
-
-try {
-  const response = await api.post('/api/member/signup', {
-    id: id,
-    password: password,
-    passwordConfirm: passwordCheck,
-    name: nickname,
-    age: ageValue ?? 0,
-    gender: genderValue || null,
-    occupation: occupation || null,
-    concern: concern || null,
-  });
-
-  if (response.status === 200) {
-    Alert.alert('회원가입 성공', '로그인 화면으로 이동합니다.', [
-      { text: '확인', onPress: () => navigation.navigate('Login') }
-    ]);
+const handleSignup = async () => {
+  if (!id || !password || !nickname) {
+    Alert.alert('필수 입력', 'ID, 비밀번호, 닉네임을 입력해주세요.');
+    return;
   }
-} catch (error) {
-  if (error.response && error.response.data) {
-    Alert.alert('회원가입 실패', error.response.data); // 서버에서 내려준 메시지 그대로
+  if (password !== passwordCheck) {
+    Alert.alert('비밀번호 불일치', '비밀번호가 일치하지 않습니다.');
+    return;
+  }
+  if (!agree1 || !agree2) {
+    Alert.alert('필수 동의', '모든 필수 항목에 동의해주세요.');
+    return;
+  }
+
+  try {
+    const response = await api.post('/api/member/signup', {
+      id: id,
+      password: password,
+      passwordConfirm: passwordCheck,
+      name: nickname,
+      age: ageValue ?? 0,
+      gender: genderValue || null,
+      occupation: occupation || null,
+      concern: concern || null,
+    });
+
+    if (response.status === 200) {
+      Alert.alert('회원가입 성공', '로그인 화면으로 이동합니다.', [
+        { text: '확인', onPress: () => navigation.navigate('Login') }
+      ]);
+    }
+  } catch (error) {
+  if (error.response) {
+    // 문자열 그대로 Alert
+    Alert.alert('회원가입 실패', error.response.data || '회원가입 중 오류가 발생했습니다.');
   } else {
     Alert.alert('회원가입 실패', '네트워크 오류가 발생했습니다.');
   }
 }
-  };
+
+
+};
+
 
 
   return (

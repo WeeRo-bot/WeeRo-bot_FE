@@ -17,21 +17,25 @@ const handleLogin = async () => {
       password: password,
     });
 
-const result = response.data;
+    const result = response.data;
 
     console.log('서버 응답:', result);
 
-    if (result.success) {
-      const token = result.data.token;
-      console.log('JWT 토큰:', token);
+    if (result.token) { // result.success 체크 대신 token 유무로 판단
+      console.log('JWT 토큰:', result.token);
       navigation.navigate('MainDrawer', { screen: 'My Page' });
-    } else {
-      Alert.alert('로그인 실패', result.message || '아이디/비밀번호를 확인하세요.');
     }
   } catch (error) {
-    console.error(error);
+  if (error.response) {
+    const msg = typeof error.response.data === 'string'
+      ? error.response.data
+      : error.response.data.message;
+
+    Alert.alert('로그인 실패', msg || '아이디/비밀번호를 확인하세요.');
+  } else {
     Alert.alert('네트워크 오류', '서버에 연결할 수 없습니다.');
   }
+}
 };
 
 
