@@ -8,6 +8,7 @@ import * as FileSystem from 'expo-file-system';
 import EmotionLight from './EmotionLight';
 import { emotionTextMap } from '../../data/emotionData';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // API 기본 URL 설정 (본인 환경에 맞게 수정 필요)
 const API_BASE_URL = 'http://192.168.0.8:8080';
@@ -153,6 +154,7 @@ const findDominantEmotion = (emotionObj) => {
       );
 
       const data = await response.json();
+
       const transcript = data.results?.[0]?.alternatives?.[0]?.transcript;
 
       if (transcript) {
@@ -182,10 +184,11 @@ const findDominantEmotion = (emotionObj) => {
   };
 
 
-  const currentUserId = "testUser01";
  // 텍스트 입력 후 분석 버튼 눌렀을 때
  const handleAnalyze = async () => {
    if (!inputText.trim()) return;
+
+   const currentUserId = await AsyncStorage.getItem('userId');
 
    setLoading(true);
    try {
@@ -197,10 +200,10 @@ const findDominantEmotion = (emotionObj) => {
        body: JSON.stringify({ text: inputText }),
      });
 
-     const json = await response.json();
+     const json = await response.json()
      const dominantEmotion = findDominantEmotion(json.mappedEmotion);
      setEmotion(dominantEmotion); // response는 { emotion: { ... } } 형식임
-     getChatAdvice("testUser01", dominantEmotion);
+     getChatAdvice(currentUserId, dominantEmotion);
    } catch (error) {
      console.error('분석 실패:', error);
    } finally {
@@ -212,15 +215,6 @@ const findDominantEmotion = (emotionObj) => {
  const defaultMsg = emotionTextMap[emotion]?.message || '감정을 인식하지 못했어요.\n다시 시도해 주세요.';
  const displayMessage = advice || defaultMsg;
 
- // const getChatAdvice = async (emotion) => {
- // try {
- //   const response = await fetch(`${API_BASE_URL}/api/chat/advice`, {
- //     method: "POST",
- //     headers: {
- //       "Content-Type": "application/json",
- //     },
- //     body: JSON.stringify({ emotion }),
- //   });
  const getChatAdvice = async (userId, emotion) => {
  try {
    const response = await fetch(`${API_BASE_URL}/api/chat/advice`, {
