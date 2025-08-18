@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import api from '../../axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -21,7 +22,8 @@ const handleLogin = async () => {
 
     console.log('서버 응답:', result);
 
-    if (result.token) { // result.success 체크 대신 token 유무로 판단
+    if (result.data.token) { // result.success 체크 대신 token 유무로 판단
+      await AsyncStorage.setItem('userId', username);
       console.log('JWT 토큰:', result.token);
       navigation.navigate('MainDrawer', { screen: 'My Page' });
     }
