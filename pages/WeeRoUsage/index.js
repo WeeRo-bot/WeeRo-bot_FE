@@ -62,23 +62,41 @@ const findDominantEmotion = (emotionObj) => {
 
   const recordingSettings = {
     android: {
-      extension: '.wav',
-      outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_PCM_16BIT,
-      audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_PCM_16BIT,
+      extension: '.m4a',
+      outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
+      audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
       sampleRate: 44100,
       numberOfChannels: 1,
       bitRate: 128000,
     },
     ios: {
-      extension: '.wav',
+      extension: '.m4a',
+      outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_MPEG4AAC,
       audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
       sampleRate: 44100,
       numberOfChannels: 1,
-      linearPCMBitDepth: 16,
-      linearPCMIsBigEndian: false,
-      linearPCMIsFloat: false,
+      bitRate: 128000,
     },
   };
+  // const recordingSettings = {
+  //   android: {
+  //     extension: '.wav',
+  //     outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_PCM_16BIT,
+  //     audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_PCM_16BIT,
+  //     sampleRate: 44100,
+  //     numberOfChannels: 1,
+  //     bitRate: 128000,
+  //   },
+  //   ios: {
+  //     extension: '.wav',
+  //     audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
+  //     sampleRate: 44100,
+  //     numberOfChannels: 1,
+  //     linearPCMBitDepth: 16,
+  //     linearPCMIsBigEndian: false,
+  //     linearPCMIsFloat: false,
+  //   },
+  // };
 
   // 🎤 음성 녹음 시작
   const startRecording = async () => {
@@ -89,7 +107,14 @@ const findDominantEmotion = (emotionObj) => {
         return;
       }
 
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+      // 오디오 모드 설정
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
       const { recording } = await Audio.Recording.createAsync(recordingSettings);
       recordingRef.current = recording;
     } catch (error) {
@@ -117,7 +142,8 @@ const findDominantEmotion = (emotionObj) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             config: {
-              encoding: 'LINEAR16',
+              // encoding: 'LINEAR16',
+              encoding: 'MP3',
               sampleRateHertz: 44100,
               languageCode: 'ko-KR',
             },
@@ -156,54 +182,63 @@ const findDominantEmotion = (emotionObj) => {
   };
 
 
-  // 텍스트 입력 후 분석 버튼 눌렀을 때
-  const handleAnalyze = async () => {
-    if (!inputText.trim()) return;
+  const currentUserId = "testUser01";
+ // 텍스트 입력 후 분석 버튼 눌렀을 때
+ const handleAnalyze = async () => {
+   if (!inputText.trim()) return;
 
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/emotion/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: inputText }),
-      });
+   setLoading(true);
+   try {
+     const response = await fetch(`${API_BASE_URL}/emotion/analyze`, {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+       },
+       body: JSON.stringify({ text: inputText }),
+     });
 
-      const json = await response.json();
-      const dominantEmotion = findDominantEmotion(json.mappedEmotion);
-      setEmotion(dominantEmotion); // response는 { emotion: { ... } } 형식임
-      getChatAdvice(dominantEmotion);
-    } catch (error) {
-      console.error('분석 실패:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  // 표시용 데이터 계산
-  const emoji = emotionTextMap[emotion]?.emoji || '';
-  const defaultMsg = emotionTextMap[emotion]?.message || '감정을 인식하지 못했어요.\n다시 시도해 주세요.';
-  const displayMessage = advice || defaultMsg;
+     const json = await response.json();
+     const dominantEmotion = findDominantEmotion(json.mappedEmotion);
+     setEmotion(dominantEmotion); // response는 { emotion: { ... } } 형식임
+     getChatAdvice("testUser01", dominantEmotion);
+   } catch (error) {
+     console.error('분석 실패:', error);
+   } finally {
+     setLoading(false);
+   }
+ };
+ // 표시용 데이터 계산
+ const emoji = emotionTextMap[emotion]?.emoji || '';
+ const defaultMsg = emotionTextMap[emotion]?.message || '감정을 인식하지 못했어요.\n다시 시도해 주세요.';
+ const displayMessage = advice || defaultMsg;
 
-  const getChatAdvice = async (emotion) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/chat/advice`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ emotion }),
-    });
+ // const getChatAdvice = async (emotion) => {
+ // try {
+ //   const response = await fetch(`${API_BASE_URL}/api/chat/advice`, {
+ //     method: "POST",
+ //     headers: {
+ //       "Content-Type": "application/json",
+ //     },
+ //     body: JSON.stringify({ emotion }),
+ //   });
+ const getChatAdvice = async (userId, emotion) => {
+ try {
+   const response = await fetch(`${API_BASE_URL}/api/chat/advice`, {
+     method: "POST",
+     headers: {
+       "Content-Type": "application/json",
+     },
+     body: JSON.stringify({ userId, emotion }),
+   });
+   if (!response.ok) throw new Error("GPT 응답 실패");
 
-    if (!response.ok) throw new Error("GPT 응답 실패");
-
-    const text = await response.text();
-    console.log("GPT 조언:", text);
-    setAdvice(text); // ✅ advice 상태에 저장
-  } catch (e) {
-    console.error("GPT 요청 실패:", e);
-    setAdvice(""); // 실패 시 기본 메시지로 fallback
-  }
+   const text = await response.text();
+   console.log("GPT 조언:", text);
+   setAdvice(text); // ✅ advice 상태에 저장
+ } catch (e) {
+   console.error("GPT 요청 실패:", e);
+   setAdvice(""); // 실패 시 기본 메시지로 fallback
+ }
 };
 
   return (
