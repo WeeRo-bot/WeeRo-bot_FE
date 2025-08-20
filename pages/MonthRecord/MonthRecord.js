@@ -1,28 +1,72 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, Text, View, Dimensions, StyleSheet } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { BarChart } from 'react-native-chart-kit';
 import { useNavigation } from '@react-navigation/native';
 import { Image } from 'react-native';
 import { emotionColors } from "../../data/colors"; 
+import axios from '../../axios';
 
 const screenWidth = Dimensions.get('window').width;
 
-// 예시: 날짜별 대표 감정 (실제론 백엔드에서 받아오겠지만 지금은 하드코딩)
-const emotionByDate = {
-  '2025-05-01': 'happiness',
-  '2025-05-02': 'surprise',
-  '2025-05-03': 'sadness',
-  '2025-05-04': 'fear',
-  '2025-05-05': 'angry',
-  '2025-05-06': 'disgust',
-  '2025-05-07': 'angry',
-  '2025-05-12': 'neutral',
-};
-
 const MonthRecord = () => {
-   const navigation = useNavigation();
+  const navigation = useNavigation();
+  const [emotionByDate, setEmotionByDate] = useState({});
+  const [emotionCount, setEmotionCount] = useState([]);
+  const [solution, setSolution] = useState('');
+  
+  // 현재 날짜 계산
+  const today = new Date();
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1);
 
+  const fetchMonthData = (year, month) => {
+    setSolution('');
+
+    // 날짜별 대표 감정
+    axios.get(`/api/emotions/calendar?year=${year}&month=${month}`)
+    .then(response => {
+      const data = response.data.data;
+
+      // 마커 생성 형식으로 변경 
+      const result = {};
+      data.forEach(item => {
+        result[item.day] = item.mainEmotion;
+      });
+
+      setEmotionByDate(result);
+    });
+
+    // 감정별 개수
+    axios.get(`/api/emotions/count?year=${year}&month=${month}`)
+    .then(response => {
+      const data = response.data.data;
+      setEmotionCount(data);
+    });
+
+    // 솔루션
+    axios.get(`/api/emotions/solution?year=${year}&month=${month}`)
+    .then(response => {
+      const data = response.data.data.solution;
+      setSolution(data);
+    });
+  }
+
+  // 컴포넌트 마운트 시 현재 월 데이터 로드
+  useEffect(() => {
+    fetchMonthData(selectedYear, selectedMonth);
+  }, [selectedYear, selectedMonth]);
+
+  // 달력 월 변경 핸들러
+  const handleMonthChange = (month) => {
+    const newYear = month.year;
+    const newMonth = month.month;
+    
+    setSelectedYear(newYear);
+    setSelectedMonth(newMonth);
+
+  };
+  
   // 달력에 표시할 마커 생성
   const markedDates = {};
   for (const date in emotionByDate) {
@@ -39,6 +83,22 @@ const MonthRecord = () => {
     };
   }
 
+  // 그래프 데이터 정리
+  const emotionLabel = {
+    HAPPY: '행복',
+    ANGRY: '분노',
+    DISGUST: '혐오',
+    FEAR: '공포',
+    NEUTRAL: '중립',
+    SAD: '슬픔',
+    SURPRISE: '놀람',
+  }
+
+  const chartData = {
+    labels: emotionCount.map(item => emotionLabel[item.emotionType] || item.emotionType),
+    datasets: [{ data: emotionCount.map(item => item.count) }],
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -52,6 +112,9 @@ const MonthRecord = () => {
           onDayPress={(day) => {
             navigation.navigate('EmotionDetail', { date: day.dateString }); //세부 기록 페이지로 연결 
           }}
+          onMonthChange={handleMonthChange} // 월 변경 이벤트 핸들러 추가
+          // 현재 표시 중인 월 설정
+          current={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-01`}
         />
 
         <View style={styles.separator} />
@@ -60,10 +123,7 @@ const MonthRecord = () => {
         {/* 감정 빈도 그래프 */}
         <View style={styles.chartWrapper}>
           <BarChart
-            data={{
-              labels: ['행복', '분노', '혐오', '공포', '중립', '슬픔', '놀람'],
-              datasets: [{ data: [6, 3, 1, 2, 8, 4, 3] }],
-            }}
+            data={chartData}
             width={screenWidth - 64}
             height={220}
             fromZero={true}
@@ -92,10 +152,9 @@ const MonthRecord = () => {
             <View style={styles.speechBubble}>
               <Text style={styles.solutionTitle}>감정 케어 솔루션</Text>
               <Text style={styles.solutionText}>
-                최근 감정 기록을 바탕으로, 나만의 루틴을 만들어보는 건 어때요? 🌿{"\n"}
-                아침마다 5분 스트레칭과 감정 일기를 써보세요!
+                {solution === '' ? "감정분석중.." : solution}
               </Text>
-            <View style={styles.bubbleTail} />
+              <View style={styles.bubbleTail} />
           </View>
         </View>
 
@@ -116,6 +175,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
+    marginTop: 20
   },
   calendar: {
     borderRadius: 10,

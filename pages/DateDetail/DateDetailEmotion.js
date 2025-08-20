@@ -2,14 +2,26 @@ import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { emotionColors } from "../../data/colors";
 import { emotionEmojis } from "../../data/emoji";
  
-export default function DateDetailEmotion({ mainEmotion, mainResult, timeEmotions = [] }) {
-  const mainEmoji = emotionEmojis[mainResult] || "😐";
+export default function DateDetailEmotion({ mainEmotion, timeEmotions }) {
+  console.log("전달 확인22 : ", mainEmotion)
+  console.log("전달 확인33 : ", timeEmotions)
+  const mainEmoji = emotionEmojis[mainEmotion] || "😐";
   const mainEmotionText = mainEmotion || "결과가 없습니다";
+
+  const emotionMap = {
+    HAPPY: '행복',
+    ANGRY: '분노',
+    DISGUST: '혐오',
+    FEAR: '공포',
+    NEUTRAL: '편안',
+    SAD: '슬픔',
+    SURPRISE: '놀람',
+  };
   
   return (
     <View style={styles.container}>
       <View style={styles.mainEmotion}>
-        <Text style={{...styles.mainText, color: emotionColors[mainResult] || "black"}}>{mainEmoji} {mainEmotionText} {mainEmoji}</Text>
+        <Text style={{...styles.mainText, color: emotionColors[mainEmotion] || "black"}}>{mainEmoji} {emotionMap[mainEmotionText] || mainEmotionText} {mainEmoji}</Text>
       </View>
       <View style={styles.timeEmotion}>
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -22,8 +34,8 @@ export default function DateDetailEmotion({ mainEmotion, mainResult, timeEmotion
               <View key={index}>
                 <View style={styles.timeItem}>
                   <Text style={styles.timeText}>{item.time}</Text>
-                  <Text style={styles.emojiText}>{emotionEmojis[item.result] || "😐"}</Text>
-                  <Text style={{...styles.timeText, color: emotionColors[item.result] || "black"}}>{item.emotion}</Text>
+                  <Text style={styles.emojiText}>{emotionEmojis[item.emotion] || "😐"}</Text>
+                  <Text style={{...styles.timeText, color: emotionColors[item.emotion] || "black"}}>{emotionMap[item.emotion] || item.emotion}</Text>
                 </View> 
                 {index !== timeEmotions.length - 1 && <View style={styles.timebar} />}
               </View>                          
