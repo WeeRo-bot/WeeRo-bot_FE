@@ -1,9 +1,9 @@
 export const emotionColors = {
-    happiness: "#FFCA3A",
-    angry: "#FF595E",
-    disgust: "#8AC926",
-    fear: "#6A4C93",
-    neutral: "#909090",
-    sadness: "#1982C4",
-    surprise: "#D04DBF",
+    HAPPY: "#FFCA3A",
+    ANGRY: "#FF595E",
+    DISGUST: "#8AC926",
+    FEAR: "#6A4C93",
+    NEUTRAL: "#909090",
+    SAD: "#1982C4",
+    SURPRISE: "#D04DBF",
 }

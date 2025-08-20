@@ -2,63 +2,13 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import DateDetailTitle from './DateDetailTitle';
 import DateDetailGraph from './DateDetailGraph';
 import DateDetailEmotion from './DateDetailEmotion';
+import { useEffect, useState } from 'react';
+import axios from '../../axios';
 
 export default function DateDetail({ route }) {
   const { date } = route.params;
-
-  const data = [{
-    id: 1,
-    date: "3월 3일",
-    mainEmotion: "슬픔",
-    mainResult: "sadness",
-    timeEmotion: [
-      {
-        time: "08:15",
-        emotion: "슬픔",
-        result: "sadness"
-      },
-      {
-        time: "09:15",
-        emotion: "슬픔",
-        result: "sadness"
-      },
-      {
-        time: "10:15",
-        emotion: "기쁨",
-        result: "happiness"
-      },
-      {
-        time: "11:15",
-        emotion: "슬픔",
-        result: "sadness"
-      },
-      {
-        time: "12:15",
-        emotion: "기쁨",
-        result: "happiness"
-      },
-      {
-        time: "18:15",
-        emotion: "슬픔",
-        result: "sadness"
-      },
-      {
-        time: "20:15",
-        emotion: "슬픔",
-        result: "sadness"
-      },
-      {
-        time: "21:15",
-        emotion: "분노",
-        result: "angry"
-      },
-      {
-        time: "22:15",
-        emotion: "슬픔",
-        result: "sadness"
-      },
-    ]
-  }]
+  const [emotionData, setEmotionData] = useState(null);
+  const [error, setError] = useState(null);
 
   // 날짜 형식 변경
   function formatDateToKorean(dateString) {
@@ -66,45 +16,59 @@ export default function DateDetail({ route }) {
     return `${parseInt(month)}월 ${parseInt(day)}일`;
   }
 
-  // 데이터 존재 확인
-  const currentDateData = data && data.length > 0 ? data[0] : null;
+  useEffect(() => {
+    const [year, month, day] = date.split('-').map(Number);
 
-  if (!currentDateData) {
+    const dayEmotions = async () => {
+      try {
+        const response = await axios.get("/api/emotions/day", {
+          params: { year, month, day }
+        });
+
+        setEmotionData(response.data.data)
+      }catch (err) {
+        setError(err);
+        console.log("데이터 불러오는데 오류 발생 ", err);
+      }
+    };
+
+    dayEmotions();
+  }, [date])
+
+    if (error) {
     return (
-      <View style={styles.container}>
-        <Text>데이터가 없습니다</Text>
+      <View style={styles.errorContainer}>
+        <Text>데이터를 불러오는 데 실패했습니다.</Text>
       </View>
     );
   }
 
-  return (
-    <View style={styles.container}>
-      <DateDetailTitle date={formatDateToKorean(date)} />
-      <DateDetailGraph timeEmotionData={currentDateData.timeEmotion} />
-      <DateDetailEmotion 
-        mainEmotion={currentDateData.mainEmotion} 
-        mainResult={currentDateData.mainResult}
-        timeEmotions={currentDateData.timeEmotion} 
-      />
-    </View>
-  );
-}
+  // 데이터 확인
+  const currentDateData = emotionData && emotionData.length > 0 ? emotionData[0] : null;
+  console.log("대아토 확인 ", currentDateData);
 
-// const styles = StyleSheet.create({
-//     container: {
-//       flex: 1,
-//       backgroundColor: '#fff',
-//       marginTop: 90
-//     },
-//   });
+  if (currentDateData) {
+    return (
+      
+      <View style={styles.container}>
+        <DateDetailTitle date={formatDateToKorean(date)} />
+        {currentDateData?.timeEmotions && (
+          <DateDetailGraph timeEmotionData={currentDateData.timeEmotions} />
+        )}
+        <DateDetailEmotion 
+          mainEmotion={currentDateData.mainEmotion} 
+          timeEmotions={currentDateData.timeEmotions} 
+        />
+      </View>
+    );
+  }
+
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    // marginTop: 90 제거!
-    // SafeAreaProvider가 상단 여백 처리함
-    // paddingHorizontal: 16, // 선택사항: 좌우 패딩
+    backgroundColor: '#fff'
   },
 });
   

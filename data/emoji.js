@@ -1,9 +1,9 @@
 export const emotionEmojis = {
-    happiness: "😊",
-    angry: "😠",
-    disgust: "🤢",
-    fear: "😨",
-    neutral: "😐",
-    sadness: "😢",
-    surprise: "😲",
+    HAPPY: "😊",
+    ANGRY: "😠",
+    DISGUST: "🤢",
+    FEAR: "😨",
+    NEUTRAL: "😐",
+    SAD: "😢",
+    SURPRISE: "😲",
 }
