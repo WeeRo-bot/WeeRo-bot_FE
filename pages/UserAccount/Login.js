@@ -24,7 +24,7 @@ const handleLogin = async () => {
 
     if (result.data.token) { // result.success 체크 대신 token 유무로 판단
       await AsyncStorage.setItem('userId', username);
-      console.log('JWT 토큰:', result.token);
+      console.log('JWT 토큰:', result.data.token);
       navigation.navigate('MainDrawer', { screen: 'My Page' });
     }
   } catch (error) {
